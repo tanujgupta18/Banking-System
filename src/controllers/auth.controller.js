@@ -1,5 +1,6 @@
 import userModel from "../models/user.model.js";
 import jwt from "jsonwebtoken";
+import { sendRegistrationEmail } from "../services/email.service.js";
 
 export async function register(req, res) {
   try {
@@ -40,6 +41,8 @@ export async function register(req, res) {
       },
       token,
     });
+
+    await sendRegistrationEmail(user.email, user.name);
   } catch (error) {
     res.status(500).json({
       message: "Internal Server Error",
