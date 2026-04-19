@@ -139,4 +139,12 @@ export async function createTransaction(req, res) {
   // 9. Commit MongoDB session
   await session.commitTransaction();
   session.endSession();
+
+  // 10. Send email notification
+  await sendTransactionEmail(req.user.email, req.user.name, amount, toAccount);
+
+  return res.status(200).json({
+    message: "Transaction completed successfully",
+    transaction: transaction,
+  });
 }
