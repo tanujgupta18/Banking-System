@@ -1,6 +1,7 @@
 import userModel from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { sendRegistrationEmail } from "../services/email.service.js";
+import tokenBlacklistModel from "../models/blacklist.model.js";
 
 export async function register(req, res) {
   try {
@@ -89,6 +90,32 @@ export async function login(req, res) {
         name: user.name,
       },
       token,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+}
+
+export async function logout(req, res) {
+  try {
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(200).json({
+        message: "User logged out successfully",
+      });
+    }
+
+    await tokenBlacklistModel.create({
+      token: token,
+    });
+
+    res.clearCookie("token");
+
+    res.status(200).json({
+      message: "User logged out successfully",
     });
   } catch (error) {
     res.status(500).json({
