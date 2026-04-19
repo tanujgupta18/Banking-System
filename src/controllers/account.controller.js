@@ -13,3 +13,13 @@ export async function createAccount(req, res) {
     });
   } catch (error) {}
 }
+
+export async function getUserAccount(req, res) {
+  const accounts = await accountModel.find({
+    user: req.user._id,
+  });
+
+  res.status(200).json({
+    accounts,
+  });
+}
