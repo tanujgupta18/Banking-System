@@ -1,7 +1,8 @@
+import mongoose from "mongoose";
+
 import accountModel from "../models/account.model.js";
 import ledgerModel from "../models/ledger.model.js";
 import transactionModel from "../models/transaction.model.js";
-
 import {
   sendTransactionEmail,
   sendTransactionFailureEmail,
@@ -93,4 +94,45 @@ export async function createTransaction(req, res) {
       message: `Insufficient balance. Current balance is ${balance}. Requested amount is ${amount}`,
     });
   }
+
+  // 5. Create transaction (PENDING)
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  const transaction = await transactionModel.create(
+    {
+      fromAccount,
+      toAccount,
+      amount,
+      idempotencyKey,
+      status: "PENDING",
+    },
+    { session },
+  );
+
+  //  6. Create DEBIT ledger entry
+  const debitLedgeEntry = await ledgerModel.create(
+    {
+      account: fromAccount,
+      amount: amount,
+      transaction: transaction._id,
+      type: "DEBIT",
+    },
+    { session },
+  );
+
+  // 7. Create CREDIT ledger entry
+  const creditLedgeEntry = await ledgerModel.create(
+    {
+      account: toAccount,
+      amount: amount,
+      transaction: transaction._id,
+      type: "CREDIT",
+    },
+    { session },
+  );
+
+  // 8. Mark transaction COMPLETED
+  transaction.status === "COMPLETED";
+  await transaction.save({ session });
 }
