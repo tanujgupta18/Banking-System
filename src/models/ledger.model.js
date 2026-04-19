@@ -14,7 +14,7 @@ const ledgerSchema = mongoose.Schema(
       required: [true, "Amount is required for creating a ledger entry."],
       immutable: true,
     },
-    transactions: {
+    transaction: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "transaction",
       required: [true, "Ledger must be assciated with an account."],
